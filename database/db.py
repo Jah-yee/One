@@ -1,97 +1,93 @@
+"""Database functions and their isolated background worker."""
 
-"""
-This is where the connection to the database is established and the functions that manipulate it are defined.
-It runs on a thread separate from the UI and the start_listening() function.
-"""
-
-import sqlite3
-from datetime import datetime
 import queue
+import sqlite3
 import threading
+from typing import Any
 
-from numpy._core.numeric import result_type
 
-q_requests = queue.Queue()
-q_result = queue.Queue()
+class DatabaseManager:
+    def __init__(self) -> None:
+        self.requests: queue.Queue[tuple[str, tuple[Any, ...]] | None] = queue.Queue()
+        self.results: queue.Queue[Any] = queue.Queue()
+        self.thread: threading.Thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
 
-def db_manager():
-    db_file = sqlite3.connect("database/one.db")
-    cursor = db_file.cursor()
+    def _run(self) -> None:
+        db_file = sqlite3.connect("database/one.db")
+        cursor = db_file.cursor()
 
-    while True:
-        request = q_requests.get()
+        while True:
+            request = self.requests.get()
+            if request is None:
+                break
 
-        if request is None: break
+            sql, params = request
+            try:
+                cursor.execute(sql, params)
+                if sql.strip().upper().startswith("SELECT"):
+                    self.results.put(cursor.fetchall())
+                else:
+                    db_file.commit()
+                    self.results.put(True)
+            except Exception:
+                self.results.put(False)
+            finally:
+                self.requests.task_done()
 
-        #sql is the command text containing (?, ?) where the data should be inserted
-        #params is the data to be inserted
-        sql, params = request
+    def execute(self, sql: str, params: tuple[Any, ...] = ()) -> Any:
+        self.requests.put((sql, params))
+        return self.results.get()
 
-        try:
-            cursor.execute(sql, params)
-            
-            # if the query is a SELECT, fetch the results and put them in the result queue
-            if sql.strip().upper().startswith("SELECT"):
-                result = cursor.fetchall()
-                q_result.put(result)
 
-            # if the query is not a SELECT, commit the changes
-            else:
-                db_file.commit()
-                q_result.put(True)
+# Single database service. Its queues and worker are no longer module globals.
+database = DatabaseManager()
 
-        except Exception as e:
 
-            # if the query fails, put False in the result queue
-            q_result.put(False)
-            
-        q_requests.task_done()
-
-# create the database manager thread
-db_thread = threading.Thread(target = db_manager, daemon = True)
-db_thread.start()
-    
-    
 def create_table():
-    # When there are no variables to substitute, use an empty tuple
-    q_requests.put(("CREATE TABLE IF NOT EXISTS history(id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, target TEXT)", ()))
-    q_result.get()
-    
-    q_requests.put(("CREATE TABLE IF NOT EXISTS task(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time_remaining TEXT, status TEXT DEFAULT 'pending', description TEXT)", ()))
-    q_result.get()
-    
+    database.execute(
+        "CREATE TABLE IF NOT EXISTS history("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, target TEXT)",
+    )
+    database.execute(
+        "CREATE TABLE IF NOT EXISTS task("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, "
+        "time_remaining TEXT, status TEXT DEFAULT 'pending', description TEXT)",
+    )
+
 
 def create_task(name: str, time_remaining: str | None, description: str | None):
-    sql = "INSERT INTO task(name, time_remaining, description) VALUES(?, ?, ?)"
-    q_requests.put((sql, (name, time_remaining, description)))
-    q_result.get()
-    
+    database.execute(
+        "INSERT INTO task(name, time_remaining, description) VALUES(?, ?, ?)",
+        (name, time_remaining, description),
+    )
+
 
 def view_tasks():
-    q_requests.put(("SELECT * FROM task", ()))
-    result = q_result.get()
-    
+    result = database.execute("SELECT * FROM task")
     if isinstance(result, Exception):
         print(f"Error in {result}")
         return
-    
+
     for row in result:
         print(row)
 
-def history_insert(intent:str, target: str):
-    sql = "INSERT INTO history(action, target) VALUES(?, ?)"
-    q_requests.put((sql, (intent, target)))
-    q_result.get()
+
+def history_insert(intent: str, target: str):
+    database.execute(
+        "INSERT INTO history(action, target) VALUES(?, ?)",
+        (intent, target),
+    )
+
 
 def db_query():
-    q_requests.put(("SELECT * FROM history", ()))
-    result = q_result.get()
-    
+    result = database.execute("SELECT * FROM history")
     if isinstance(result, Exception):
         print(f"Error in {result}")
         return
-    
+
     for row in result:
         print(row)
+
 
 create_table()
