@@ -1,5 +1,6 @@
 """Database functions and their isolated background worker."""
 
+from datetime import datetime
 import queue
 import sqlite3
 import threading
@@ -46,17 +47,22 @@ database = DatabaseManager()
 
 def create_table():
     database.execute(
-        "CREATE TABLE IF NOT EXISTS history("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, target TEXT)",
+        """CREATE TABLE IF NOT EXISTS history(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        intent TEXT, 
+        target TEXT)""",
     )
     database.execute(
-        "CREATE TABLE IF NOT EXISTS task("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, "
-        "time_remaining TEXT, status TEXT DEFAULT 'pending', description TEXT)",
+        """CREATE TABLE IF NOT EXISTS task(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        name TEXT, 
+        time_remaining TEXT, 
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'finished', 'in progress')), 
+        description TEXT)""",
     )
 
 
-def create_task(name: str, time_remaining: str | None, description: str | None):
+def create_task(name: str, time_remaining: datetime | None, description: str | None):
     database.execute(
         "INSERT INTO task(name, time_remaining, description) VALUES(?, ?, ?)",
         (name, time_remaining, description),

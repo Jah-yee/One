@@ -5,6 +5,7 @@ This is where the link between identifying the command and executing the action 
 
 import subprocess
 import webbrowser
+from database.methods import DbMethods
 from src.commands.apis import *
 import urllib.parse
 from src.audio.speech import *
@@ -13,6 +14,7 @@ from database.db import *
 
 class Actions:
     def __init__(self):
+        self.db_m = DbMethods()
         self.router = {
             "VIEW_TASKS": self.view_task,
             "ADD_TASK": self.add_task,
@@ -48,8 +50,9 @@ class Actions:
         description = ask_user(" Enter the description")
         if description == "skip":
             description = None
-            
-        create_task(target, time_remaining, description)
+
+        formated_t = self.db_m.formatDate(time_remaining)
+        create_task(target, formated_t , description)
         speech(f"Task {target} created.")
         _ = history_insert(intent, target)
 
