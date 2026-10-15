@@ -61,11 +61,10 @@ def create_table():
         description TEXT)""",
     )
 
-
-def create_task(name: str, time_remaining: datetime | None, description: str | None):
+def create_task(name: str, time_remaining: datetime | None, status: str | None = "pending", description: str | None = None):
     database.execute(
-        "INSERT INTO task(name, time_remaining, description) VALUES(?, ?, ?)",
-        (name, time_remaining, description),
+        "INSERT INTO task(name, time_remaining, status, description) VALUES(?, ?, ?, ?)",
+        (name, time_remaining, status, description),
     )
 
 

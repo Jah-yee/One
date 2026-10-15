@@ -5,7 +5,7 @@ This is where the link between identifying the command and executing the action 
 
 import subprocess
 import webbrowser
-from database.methods import DbMethods
+from database.methods import DbMethods, TaskState
 from src.commands.apis import *
 import urllib.parse
 from src.audio.speech import *
@@ -43,16 +43,38 @@ class Actions:
         _ = history_insert(intent, target)
 
     def add_task(self, intent: str, target: str):
-        time_remaining = ask_user(" Enter the time remaining")
-        if time_remaining == "skip":
-            time_remaining = None
-            
-        description = ask_user(" Enter the description")
-        if description == "skip":
-            description = None
+        formated_t = None
+        description = None
+        status = None
+        
+        while True:
+            time_remaining = ask_user("Do you want to set a date for the task?")
+            if time_remaining == "no":
+                formated_t = None
+                break
 
-        formated_t = self.db_m.formatDate(time_remaining)
-        create_task(target, formated_t , description)
+            formated_t = self.db_m.formatDate(time_remaining)
+
+            if formated_t is not None:
+                break
+                
+        while True:
+            status = ask_user("Do you want to set a status for the task?")
+            
+            if status == "no":
+                status = None
+                break
+    
+            if TaskState(status):
+                # pending, finished, in progress
+                status = TaskState(status).value 
+                break
+         
+        description = ask_user("Do you want to add a description?")
+        if description == "no":
+            description = None
+            
+        create_task(target, formated_t, status, description)
         speech(f"Task {target} created.")
         _ = history_insert(intent, target)
 

@@ -1,7 +1,20 @@
+from _typeshed import StrEnum
 from datetime import datetime
+
 
 from dateparser.date import DateDataParser
 
+"""
+ A class to represent the state of a task.
+ Inherits from struct.Struct to allow for easy serialization and deserialization.
+"""
+ 
+class TaskState (StrEnum):
+
+    PENDING = "pending"
+    FINISHED = "finished"
+    IN_PROGRESS = "in progress"
+    
 class DbMethods:
     def __init__(self) -> None:
         # Store the current datetime for relative date parsing
@@ -16,10 +29,7 @@ class DbMethods:
         })
     
         
-    def formatDate(self, text: str | None) -> datetime | None:
-        if text is None:
-            return None
-            
+    def formatDate(self, text: str) -> datetime | None:        
         result = self.parser.get_date_data(text)
 
         return result.date_obj
