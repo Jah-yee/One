@@ -33,9 +33,13 @@ registry_commands: dict[str, CommandConfig]= {
         "raw_text": False,
         "ignore_words": []
     },
+    "DELETE_TASK": {
+        "raw_text": False,
+        "ignore_words": []
+    },
     "ADD_TASK": {
-        "raw_text": True,
-        "ignore_words": ["add", "task", "create", "new", "make"]
+        "raw_text": False,
+        "ignore_words": []
     },
     "PLAY_MUSIC": {
         "raw_text": True,

@@ -38,6 +38,14 @@
    "show my tasks",
    "What are my tasks?"
  ],
+
+ "DELETE_TASK": [
+   "delete task",
+   "remove task",
+   "erase task",
+   "please, delete a task",
+   "please, remove a task"
+  ],
  
  "ADD_TASK": [
    "create new task",

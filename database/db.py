@@ -61,13 +61,34 @@ def create_table():
         description TEXT)""",
     )
 
-def create_task(name: str, time_remaining: datetime | None, status: str | None = "pending", description: str | None = None):
+def create_task(name: str, 
+    time_remaining: datetime | None, 
+    status: str | None = "pending", 
+    description: str | None = None):
     database.execute(
         "INSERT INTO task(name, time_remaining, status, description) VALUES(?, ?, ?, ?)",
         (name, time_remaining, status, description),
     )
 
+def delete_task(name: str):
+    if(verify_task(name)):
+        database.execute(
+            "DELETE FROM task WHERE name = ?",
+            (name,),
+        )
 
+def verify_task(name: str):
+    result = database.execute(
+        "SELECT name FROM task WHERE name = ?",
+        (name,),
+    )
+    
+    row = result.fetchone()
+
+    if row:
+        return True
+
+        
 def view_tasks():
     result = database.execute("SELECT * FROM task")
     if isinstance(result, Exception):

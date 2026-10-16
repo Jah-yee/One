@@ -30,6 +30,7 @@ class Actions:
             "DOWN_VOL": self.down_vol,
             "STOP_MUSIC": self.stop_music,
             "RESUME_MUSIC": self.resume_music,
+            "DELETE_TASK": self.delete_task,
         }
 
         
@@ -38,15 +39,29 @@ class Actions:
             action = self.router[intent]
             action(intent, target)
 
+    def delete_task(self, intent: str, target: str):
+        task_name = ask_user("What is the name of the task you want to delete?")
+        
+        delete_task(task_name)
+        speech(f"Task {task_name} deleted.")
+        
+        _ = history_insert(intent, task_name)
+        
     def view_task(self, intent: str, target: str):
         view_tasks()
         _ = history_insert(intent, target)
 
     def add_task(self, intent: str, target: str):
+        name = None
         formated_t = None
         description = None
         status = None
-        
+
+        while True:
+            name = ask_user("What is the name of the task?")
+            if name:
+                break
+                
         while True:
             time_remaining = ask_user("Do you want to set a date for the task?")
             if time_remaining == "no":
@@ -74,12 +89,13 @@ class Actions:
         if description == "no":
             description = None
             
-        create_task(target, formated_t, status, description)
-        speech(f"Task {target} created.")
-        _ = history_insert(intent, target)
+        create_task(name, formated_t, status, description)
+        speech(f"Task {name} created.")
+        _ = history_insert(intent, name)
 
     def view_history(self, intent: str, target: str):
         db_query()
+        speech("Showing history.")
         _ = history_insert(intent, target)
 
     def search(self, intent: str, target: str):
