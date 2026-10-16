@@ -8,14 +8,15 @@ from typing import Any
 
 
 class DatabaseManager:
-    def __init__(self) -> None:
+    def __init__(self, path: str) -> None:
+        self.path = path
         self.requests: queue.Queue[tuple[str, tuple[Any, ...]] | None] = queue.Queue()
         self.results: queue.Queue[Any] = queue.Queue()
         self.thread: threading.Thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
     def _run(self) -> None:
-        db_file = sqlite3.connect("database/one.db")
+        db_file = sqlite3.connect(self.path)
         cursor = db_file.cursor()
 
         while True:
@@ -41,18 +42,21 @@ class DatabaseManager:
         return self.results.get()
 
 
-# Single database service. Its queues and worker are no longer module globals.
-database = DatabaseManager()
+# Initialize the DatabaseManager with the default path or a defined path (for tests)
+def get_db_manager(path: str = "database/one.db") -> DatabaseManager:
+    database = DatabaseManager(path)
+    return database
+    
+db_default = get_db_manager()
 
-
-def create_table():
-    database.execute(
+def create_table(db: DatabaseManager = db_default):
+    db.execute(
         """CREATE TABLE IF NOT EXISTS history(
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         intent TEXT, 
         target TEXT)""",
     )
-    database.execute(
+    db.execute(
         """CREATE TABLE IF NOT EXISTS task(
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         name TEXT, 
@@ -61,36 +65,36 @@ def create_table():
         description TEXT)""",
     )
 
-def create_task(name: str, 
+def create_task(
+    name: str, 
     time_remaining: datetime | None, 
     status: str | None = "pending", 
-    description: str | None = None):
-    database.execute(
+    description: str | None = None,
+    db: DatabaseManager = db_default):
+        
+    db.execute(
         "INSERT INTO task(name, time_remaining, status, description) VALUES(?, ?, ?, ?)",
         (name, time_remaining, status, description),
     )
 
-def delete_task(name: str):
+def delete_task(name: str, db: DatabaseManager = db_default):
     if(verify_task(name)):
-        database.execute(
+        db.execute(
             "DELETE FROM task WHERE name = ?",
             (name,),
         )
 
-def verify_task(name: str):
-    result = database.execute(
+def verify_task(name: str, db: DatabaseManager = db_default) -> bool: 
+    result = db.execute(
         "SELECT name FROM task WHERE name = ?",
         (name,),
     )
     
-    row = result.fetchone()
-
-    if row:
-        return True
+    return bool(result)  # Returns True if the task exists, False otherwise
 
         
-def view_tasks():
-    result = database.execute("SELECT * FROM task")
+def view_tasks(db: DatabaseManager = db_default):
+    result = db.execute("SELECT * FROM task")
     if isinstance(result, Exception):
         print(f"Error in {result}")
         return
@@ -99,15 +103,15 @@ def view_tasks():
         print(row)
 
 
-def history_insert(intent: str, target: str):
-    database.execute(
-        "INSERT INTO history(action, target) VALUES(?, ?)",
+def history_insert(intent: str, target: str, db: DatabaseManager = db_default):
+    db.execute(
+        "INSERT INTO history(intent, target) VALUES(?, ?)",
         (intent, target),
     )
 
 
-def db_query():
-    result = database.execute("SELECT * FROM history")
+def db_query(db: DatabaseManager = db_default):
+    result = db.execute("SELECT * FROM history")
     if isinstance(result, Exception):
         print(f"Error in {result}")
         return
@@ -116,4 +120,3 @@ def db_query():
         print(row)
 
 
-create_table()

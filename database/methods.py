@@ -1,7 +1,5 @@
-from _typeshed import StrEnum
+from enum import StrEnum
 from datetime import datetime
-
-
 from dateparser.date import DateDataParser
 
 """

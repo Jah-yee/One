@@ -13,7 +13,6 @@ class TestDatabaseMethods(unittest.TestCase):
 
     @override
     def setUp(self) -> None:
-        super().setUp()
         self.db_methods = DbMethods()
         
     def test_formal_date(self):

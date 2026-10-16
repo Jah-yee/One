@@ -15,6 +15,7 @@ from database.db import *
 class Actions:
     def __init__(self):
         self.db_m = DbMethods()
+        create_table()
         self.router = {
             "VIEW_TASKS": self.view_task,
             "ADD_TASK": self.add_task,
