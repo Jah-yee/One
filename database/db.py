@@ -41,6 +41,10 @@ class DatabaseManager:
         self.requests.put((sql, params))
         return self.results.get()
 
+    def close(self) -> None:
+        self.requests.put(None)
+        self.thread.join(timeout=1.0)
+
 
 # Initialize the DatabaseManager with the default path or a defined path (for tests)
 def get_db_manager(path: str = "database/one.db") -> DatabaseManager:
@@ -78,7 +82,7 @@ def create_task(
     )
 
 def delete_task(name: str, db: DatabaseManager = db_default):
-    if(verify_task(name)):
+    if verify_task(name, db):
         db.execute(
             "DELETE FROM task WHERE name = ?",
             (name,),

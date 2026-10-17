@@ -60,12 +60,15 @@ class Actions:
 
         while True:
             name = ask_user("What is the name of the task?")
-            if name:
+    
+            if not verify_task(name):
                 break
-                
+            else:
+                speech(f"A task with the name {name} already exists. Please choose a different name.")
+                            
         while True:
-            time_remaining = ask_user("Do you want to set a date for the task?")
-            if time_remaining == "no":
+            time_remaining = ask_user("What is the time remaining for the task?")
+            if time_remaining == "skip":
                 formated_t = None
                 break
 
@@ -75,9 +78,9 @@ class Actions:
                 break
                 
         while True:
-            status = ask_user("Do you want to set a status for the task?")
+            status = ask_user("What is the status of the task?")
             
-            if status == "no":
+            if status == "skip":
                 status = None
                 break
     
@@ -86,8 +89,8 @@ class Actions:
                 status = TaskState(status).value 
                 break
          
-        description = ask_user("Do you want to add a description?")
-        if description == "no":
+        description = ask_user("What is the description of the task?")
+        if description == "skip":
             description = None
             
         create_task(name, formated_t, status, description)
