@@ -40,6 +40,12 @@ class Actions:
             action = self.router[intent]
             action(intent, target)
 
+    def view_unic_task(self, intent: str, target: str):
+        task_name = ask_user("What is the name of the task you want to see?")
+        view_single_task(task_name)
+
+        _ = history_insert(intent, task_name)
+
     def delete_task(self, intent: str, target: str):
         task_name = ask_user("What is the name of the task you want to delete?")
         
@@ -98,7 +104,7 @@ class Actions:
         _ = history_insert(intent, name)
 
     def view_history(self, intent: str, target: str):
-        db_query()
+        history_query()
         speech("Showing history.")
         _ = history_insert(intent, target)
 

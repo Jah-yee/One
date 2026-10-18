@@ -5,7 +5,7 @@ import queue
 import sqlite3
 import threading
 from typing import Any
-
+from src.audio.speech import speech
 
 class DatabaseManager:
     def __init__(self, path: str) -> None:
@@ -96,11 +96,28 @@ def verify_task(name: str, db: DatabaseManager = db_default) -> bool:
     
     return bool(result)  # Returns True if the task exists, False otherwise
 
-        
+def view_single_task(name: str, db: DatabaseManager = db_default):
+    if not verify_task(name, db):
+        speech("Task not found!")
+        return
+
+    result = db.execute(
+        "SELECT name FROM task WHERE name = ?", 
+        (name,),
+    )
+    
+    if isinstance(result, Exception):
+        speech(f"Error in {result}")
+        return
+
+    for row in result:
+        print(row)
+    
 def view_tasks(db: DatabaseManager = db_default):
     result = db.execute("SELECT * FROM task")
+    
     if isinstance(result, Exception):
-        print(f"Error in {result}")
+        speech(f"Error in {result}")
         return
 
     for row in result:
@@ -114,10 +131,10 @@ def history_insert(intent: str, target: str, db: DatabaseManager = db_default):
     )
 
 
-def db_query(db: DatabaseManager = db_default):
+def history_query(db: DatabaseManager = db_default):
     result = db.execute("SELECT * FROM history")
     if isinstance(result, Exception):
-        print(f"Error in {result}")
+        speech(f"Error in {result}")
         return
 
     for row in result:

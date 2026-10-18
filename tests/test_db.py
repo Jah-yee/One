@@ -68,6 +68,16 @@ class TestDatabase(unittest.TestCase):
         self.assertFalse(verify_task(task_name, self.db))
         
 
+    def test_single_task(self):
+        print("\n #############Testing view_single_task...#############")
+        assert self.db is not None
+
+        task_name = "make a coffee"
+        create_task(task_name, time_remaining=None, db=self.db)
+        create_task("make a cake", time_remaining=None, db=self.db)
+        self.assertTrue(verify_task(task_name, self.db))
+
+        view_single_task(task_name, self.db)
 
    
 if __name__ == '__main__':
