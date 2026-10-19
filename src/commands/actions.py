@@ -43,12 +43,13 @@ class Actions:
 
     def update_task(self, intent: str, target: str):
         task_name = ask_user("What is the name of the task you want to update?")
-
+        
         if verify_task(task_name):
-            new_name = ask_user("Say the new task name")
-
+            new_name = None
             while True:
+                new_name = ask_user("Say the new task name")
                 if new_name == "skip":
+                    new_name = task_name
                     break
                 if verify_task(new_name):
                     speech("Task already exists")
@@ -56,8 +57,19 @@ class Actions:
                     
                 update_task_name(task_name, new_name) #old name, new name
                 break
-            
-        
+
+            while True:
+                new_date = ask_user("Say th new task date")
+                if new_date == "skip":
+                    break
+
+                formated_t = self.db_m.formatDate(new_date)
+
+                if formated_t is not None:
+                    update_task_time(new_name, formated_t)
+                else:
+                    speech("The new datetime is invalid")
+                    
     def view_unic_task(self, intent: str, target: str):
         task_name = ask_user("What is the name of the task you want to see?")
         view_single_task(task_name)
