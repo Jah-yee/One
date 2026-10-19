@@ -58,8 +58,8 @@ class TestDatabase(unittest.TestCase):
         assert self.db is not None
 
         task_name = "make a coffee"
-        create_task(task_name, time_remaining=None, db=self.db)
-        create_task("make a cake", time_remaining=None, db=self.db)
+        create_task(task_name, time_remaining=None, description="buy ingredients", db=self.db)
+        create_task("make a cake", time_remaining=None, description="buy ingredients", db=self.db)
         self.assertTrue(verify_task(task_name, self.db))
 
         delete_task(task_name, self.db)
@@ -73,8 +73,8 @@ class TestDatabase(unittest.TestCase):
         assert self.db is not None
 
         task_name = "make a coffee"
-        create_task(task_name, time_remaining=None, db=self.db)
-        create_task("make a cake", time_remaining=None, db=self.db)
+        create_task(task_name, time_remaining=None, description="buy ingredients", db=self.db)
+        create_task("make a cake", time_remaining=None, description="buy ingredients", db=self.db)
         self.assertTrue(verify_task(task_name, self.db))
 
         view_single_task(task_name, self.db)

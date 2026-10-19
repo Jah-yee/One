@@ -32,6 +32,7 @@ class Actions:
             "STOP_MUSIC": self.stop_music,
             "RESUME_MUSIC": self.resume_music,
             "DELETE_TASK": self.delete_task,
+            "VIEW_SINGLE_TASK": self.view_unic_task,
         }
 
         
@@ -40,6 +41,23 @@ class Actions:
             action = self.router[intent]
             action(intent, target)
 
+    def update_task(self, intent: str, target: str):
+        task_name = ask_user("What is the name of the task you want to update?")
+
+        if verify_task(task_name):
+            new_name = ask_user("Say the new task name")
+
+            while True:
+                if new_name == "skip":
+                    break
+                if verify_task(new_name):
+                    speech("Task already exists")
+                    continue
+                    
+                update_task_name(task_name, new_name) #old name, new name
+                break
+            
+        
     def view_unic_task(self, intent: str, target: str):
         task_name = ask_user("What is the name of the task you want to see?")
         view_single_task(task_name)

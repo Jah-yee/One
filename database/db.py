@@ -96,13 +96,18 @@ def verify_task(name: str, db: DatabaseManager = db_default) -> bool:
     
     return bool(result)  # Returns True if the task exists, False otherwise
 
+def update_task_name(old_name:str, new_name: str, db: DatabaseManager = db_default):
+    db.execute(
+        "UPDATE task SET name = ? WHERE name = ?", (new_name, old_name)
+    )
+    
 def view_single_task(name: str, db: DatabaseManager = db_default):
     if not verify_task(name, db):
         speech("Task not found!")
         return
 
     result = db.execute(
-        "SELECT name FROM task WHERE name = ?", 
+        "SELECT * FROM task WHERE name = ?", 
         (name,),
     )
     

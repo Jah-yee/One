@@ -28,7 +28,10 @@ registry_commands: dict[str, CommandConfig]= {
         "raw_text": False,
         "ignore_words": []
     },
-    
+    "VIEW_SINGLE_TASK": {
+        "raw_text": False,
+        "ignore_words": []
+    },
     "VIEW_HISTORY": {
         "raw_text": False,
         "ignore_words": []
